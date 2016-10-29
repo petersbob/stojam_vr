@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Stojam VR</title>
+        <style>
+            body {
+               margin: 0px;
+               overflow: hidden;
+            }
+            #example {
+               position:absolute;
+               top: 0;
+               left: 0;
+               right: 0;
+               bottom: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id ="example"></div>
+        <script src="lib/three.min.js"></script>
+
+        <script>
+         var camera, scene, renderer;
+         var element, container;
+         var cube;
+
+         init();
+         animate();
+
+         function init() {
+             renderer = new THREE.WebGLRenderer();
+             renderer.setClearColor(0xffffff, 1);
+             element = renderer.domElement;
+             container = document.getElementById('example');
+             container.appendChild(element);
+             
+             renderer.setSize( window.innerWidth, window.innerHeight);
+
+             scene = new THREE.Scene();
+             
+             var aspect = window.innerWidth / window.innerHeight;
+             camera = new THREE.PerspectiveCamera(75, aspect, 0.001, 700);
+             camera.position.z = 5;
+
+             //============A simple box===============//
+             var geometry = new THREE.BoxGeometry(2, 2, 2);
+             var material = new THREE.MeshNormalMaterial();
+
+             cube = new THREE.Mesh(geometry, material);
+             scene.add(cube);
+           //======================================//
+
+         }
+
+         function animate() {
+             requestAnimationFrame(animate);
+             cube.rotation.x += 0.01;
+             cube.rotation.y += 0.01;
+             
+             render();
+         }
+
+         function render() {
+             renderer.render(scene, camera);
+         }
+
+        </script>
+
+    </body>
+</html>
