@@ -15,22 +15,74 @@
                bottom: 0;
             }
         </style>
-    </head>
+     </head>
     <body>
         <div id ="example"></div>
-        <script src="lib/three.min.js"></script>
+        <script src="/public/js/three.min.js"></script>
+        <script src="/public/js/OrbitControls.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script>
-            var socket = io();
-        </script>
 
-        <script>
+
          var camera, scene, renderer;
-         var element, container;
+         var element, container, controls;
          var cube;
 
+         var localClient;
+
          init();
-         animate();
+
+
+         var myself;
+         
+         var clientsMap = {};
+         var localCubeMap = {};
+
+         function newCube(cubeMapCube) {
+             
+             var cube_geometry = new THREE.BoxGeometry(2, 2, 2);
+             var cube_material = new THREE.MeshNormalMaterial();
+
+             var newCube = new THREE.Mesh(cube_geometry, cube_material);
+             newCube.position.x = cubeMapCube.x;
+             newCube.position.y = cubeMapCube.y;
+             newCube.position.z = camera.position.z;
+
+             scene.add(newCube);
+
+             localCubeMap[cubeMapCube.id] = newCube;
+
+         }
+
+         function newClientObject(id, x, y, z) {
+             //console.log('id ' + id);
+             var newClient = new Object();
+             newClient.id = id;
+             newClient.x = x;
+             newClient.y = y;
+             newClient.z = z;
+             var cube_geometry = new THREE.BoxGeometry(2, 2, 2);
+             var cube_material = new THREE.MeshNormalMaterial();
+
+             var newCube = new THREE.Mesh(cube_geometry, cube_material);
+             newCube.position.x = x;
+             newCube.position.y = y;
+             newCube.position.z = z;
+
+             scene.add(newCube);
+
+             localCubeMap[id] = newCube;
+
+             return newClient;
+
+             
+         }
+
+         function updateCube(cubeToUpdate) {
+             cube.x = cubeMap[cubeToUpdate.id].x;
+             cube.y = cubemap[cubeToUpdate.id].y;
+             cube.z = cubemap[cubeToUpdate.id].z;
+         }
 
          function init() {
              renderer = new THREE.WebGLRenderer();
@@ -45,13 +97,16 @@
              
              var aspect = window.innerWidth / window.innerHeight;
              camera = new THREE.PerspectiveCamera(75, aspect, 0.001, 700);
-             camera.position.y = 2;
-             camera.position.z = 7;
+             camera.position.x = Math.random() * 20;
+             camera.position.y = 3;
+             camera.position.z = Math.random() * 20;
+
+             controls = new THREE.OrbitControls(camera, element);
 
              //============A plane===================//
 
              var texture_loader = new THREE.TextureLoader();
-             var plane_texture = texture_loader.load('assets/dirt.png');
+             var plane_texture = texture_loader.load('/public/assets/dirt.png');
              
              //var plane_texture = new THREE.ImageUtils.loadTexture( 'assets/dirt.png');
              plane_texture.wrapS = plane_texture.wrapT = THREE.RepeatWrapping;
@@ -66,22 +121,36 @@
 
              scene.add(plane);
 
-             //============A simple box===============//
-             var cube_geometry = new THREE.BoxGeometry(2, 2, 2);
-             var cube_material = new THREE.MeshNormalMaterial();
+             //============A simple box that follows camera===============//
+             /* var cube_geometry = new THREE.BoxGeometry(2, 2, 2);
+              * var cube_material = new THREE.MeshNormalMaterial();
 
-             cube = new THREE.Mesh(cube_geometry, cube_material);
-             cube.position.y = 2;
-             
-             scene.add(cube);
+              * cube = new THREE.Mesh(cube_geometry, cube_material);
+              * cube.position.x = camera.position.z
+              * cube.position.z = myself.z;
+              * 
+              * scene.add(cube);*/
            //======================================//
 
          }
 
+         var check = 0;
          function animate() {
              requestAnimationFrame(animate);
-             cube.rotation.x += 0.01;
-             cube.rotation.y += 0.01;
+
+             localCubeMap[myself].position.x = camera.position.x;
+             localCubeMap[myself].position.y = camera.position.y-3;
+             localCubeMap[myself].position.z = camera.position.z;
+
+             localClient.x = camera.position.x;
+             localClient.y = camera.position.y;
+             localClient.z = camera.position.z;
+             if(check < 0){
+                 check = 250;
+                 socket.emit('update', localClient);
+             }
+             check --;
+             controls.update();
              
              render();
          }
@@ -89,6 +158,63 @@
          function render() {
              renderer.render(scene, camera);
          }
+
+         var socket = io();
+
+
+
+         socket.on('socket_id', function(id_msg) {
+             myself = id_msg;
+             localClient =  newClientObject(myself, camera.position.x, camera.position.y-3, camera.position.z);
+             socket.emit('update', localClient);
+         });
+
+         // localCubeArray = []
+         // update event -> cubeMap
+         // for(cube in localCubeArray)
+         //    if(cubeMap[cube.id])//it's already there, update it
+         //         cube.x = cubeMap[cube.id].x
+         //    else
+         //        //Delete it!!!!
+         //
+         // disconnect event -> idToRemove
+         //      loop through localCubeArray and remove cube.id == idToRemove
+         socket.on('update', function(cubeMap){
+             cubeMap = JSON.parse(cubeMap);
+             /* For (arrCube in localCubeArray) {
+              *     if ((arrCube.id != myself) && (cubemap[arrCube.id])) {
+              *         arrCube.cube.x = cubeMap[cubeToUpdate.id].x;
+              *         arrCube.cube.y = cubemap[cubeToUpdate.id].y;
+              *         arrCube.cube.z = cubemap[cubeToUpdate.id].z;
+              *     }
+              * }*/
+             var diffMap = {};
+             diffMap[myself] = true;
+             console.log(cubeMap);
+             for (var cubeM in cubeMap) {
+                 //console.log('new cube' + cubeM);
+                 if (cubeMap[cubeM].id != myself) {
+                     diffMap[cubeMap[cubeM].id] = true;
+                     console.log(cubeMap[cubeM].id);
+                     if (localCubeMap[cubeMap[cubeM].id]) {
+                         localCubeMap[cubeMap[cubeM].id].position.x = cubeMap[cubeM].x;
+                         localCubeMap[cubeMap[cubeM].id].position.y = cubeMap[cubeM].y;
+                         localCubeMap[cubeMap[cubeM].id].position.z = cubeMap[cubeM].z;
+                     }
+                     else {
+                         newCube(cubeMap[cubeM]);
+                     }
+                 }
+             }
+
+             animate();
+         });
+
+         /* socket.on('disconnect', function(dis_id) {
+          *     scene.remove(localCubeMap[dis_is]);
+          *     delete localCubeMap[dis_id];
+          * });*/
+
 
         </script>
 
