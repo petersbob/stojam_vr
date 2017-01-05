@@ -5,51 +5,37 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-//var clients = [];
-var clientMap = {};
-/*
-loop through array
-if(clientMap[client.id] == undefined){
-clientMap[client.id] = true;
-create new cube 
-}
- */
+var Player = require('./server_player');
 
-function createClient(new_socket, new_msg) {
-    clients.push({
-        coords: new_msg,
-        id: new_socket.id
-    })
-}
+var players = {};
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-app.use('/public',express.static('public'));
+app.use('/public', express.static('public'));
 
 io.on('connection', function(socket) {
     console.log('a user connected. Socket: ' + socket.id);
 
     socket.emit('socket_id', socket.id);
     socket.on('update', function(msg) {
-        clientMap[msg.id] = msg;
-        io.emit('update', JSON.stringify(clientMap));
+        if (msg.id in players) {
+            players[msg.id].UpdatePosition(msg);
+        } else {
+            var player = new Player.Player(msg.id);
+            players[player.id] = player;
+            console.log("created new player" + players[player.id]);
+        }
+        io.emit('update', JSON.stringify(players));
     });
-    // socket.on('render', function(msg) {
-    //     console.log(msg.x);
-    // });
-    // socket.on('cubeUpdate', msg) {
-    //     clientMap[msg.id].x = msg.x
-    // });
+
     socket.on('disconnect', function(socket) {
         console.log('a user disconnected');
-        delete clientMap[socket.id];
-        io.emit('update', JSON.stringify(clientMap));
+        delete players[socket.id];
+        io.emit('update', JSON.stringify(players));
     });
 });
-
-
 
 http.listen(3000, function() {
     console.log('listening on *:3000');
