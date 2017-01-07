@@ -10,6 +10,24 @@ function Player(id) {
 
 };
 
+Player.prototype.GetData = function() {
+
+    var data = {
+	px: this.px,
+	py: this.py,
+	pz: this.pz,
+
+	rx: this.rx,
+	ry: this.ry,
+	rz: this.rz,
+
+	id: this.id
+    };
+
+    return data;
+
+};
+
 Player.prototype.UpdatePosition = function(data) {
     this.px = data.px;
     this.py = data.py;

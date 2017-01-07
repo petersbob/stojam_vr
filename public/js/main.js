@@ -78,13 +78,13 @@ function init() {
 
     //var plane_texture = new THREE.ImageUtils.loadTexture( 'assets/dirt.png');
     plane_texture.wrapS = plane_texture.wrapT = THREE.RepeatWrapping;
-    plane_texture.repeat.set(1000, 1000);
+    plane_texture.repeat.set(10, 10);
 
     var plane_material = new THREE.MeshBasicMaterial({
         map: plane_texture,
         side: THREE.DoubleSide
     });
-    var plane_geometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
+    var plane_geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
 
     var plane = new THREE.Mesh(plane_geometry, plane_material);
 
@@ -115,8 +115,8 @@ function animate() {
     cube = players[myself].mesh;
 
     var delta = move_clock.getDelta(); // seconds since last getDelta was called
-    var moveDistance = 30 * delta;
-    var rotateAngle = Math.PI / 2 * delta;
+    var moveDistance = 30 * delta; // pixels per second
+    var rotateAngle = Math.PI / 1.5 * delta; //  (120 degrees) degrees per seconds in radians
 
     // local transformations
 
@@ -163,7 +163,10 @@ var socket = io();
 socket.on('socket_id', function(id) {
     myself = id;
     var local_player = new Player(id);
-    local_player.CreateMesh(0, 1, 0);
+    var x = Math.random() * 45;
+    var y = 1;
+    var z = Math.random() * 45;
+    local_player.CreateMesh(x, y, z);
     players[myself] = local_player;
 
     socket.emit('update', local_player.GetData());

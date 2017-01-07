@@ -1,13 +1,9 @@
 function Player(id) {
-    console.log("creating player");
-    
     this.mesh;
     this.id = id;
 };
 
 Player.prototype.CreateMesh = function(x, y, z) {
-    console.log("creating mesh");
-    
     var cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
     var cubeMaterial = new THREE.MeshNormalMaterial();
 
@@ -20,7 +16,7 @@ Player.prototype.CreateMesh = function(x, y, z) {
 };
 
 Player.prototype.GetData = function() {
-    
+
     var data = {
 	px: this.mesh.position.x,
 	py: this.mesh.position.y,
@@ -34,11 +30,11 @@ Player.prototype.GetData = function() {
     };
 
     return data;
-    
+
 };
 
 Player.prototype.UpdatePos = function(data) {
-    
+
     this.mesh.position.x = data.px;
     this.mesh.position.y = data.py;
     this.mesh.position.z = data.pz;
