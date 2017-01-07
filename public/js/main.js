@@ -176,6 +176,7 @@ socket.on('socket_id', function(id) {
 
 socket.on('update', function(server_players) {
     server_players = JSON.parse(server_players);
+
     for (var server_player in server_players) {
         if (server_player in players) {
             players[server_player].UpdatePos(server_players[server_player]);
@@ -185,14 +186,16 @@ socket.on('update', function(server_players) {
             new_player.UpdatePos(server_players[server_player]);
             players[server_players[server_player].id] = new_player;
         }
-        //console.log(players);
     }
+
 });
 
-/* socket.on('disconnect', function(dis_id) {
- *     scene.remove(players[dis_is]);
- *     delete players[dis_id];
- * });*/
+socket.on('remove_player', function(msg) {
+    console.log("trying to remove a player");
+    players[msg.id].Remove();
+    delete players[id];
+
+});
 
 function checkMobile() {
     var check = false;

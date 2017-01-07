@@ -30,10 +30,10 @@ io.on('connection', function(socket) {
         io.emit('update', JSON.stringify(players));
     });
 
-    socket.on('disconnect', function(socket) {
-        console.log('a user disconnected');
+    socket.on('disconnect', function() {
+        console.log('a user disconnected with id: ' + socket.id);
+        io.emit('remove_player', players[socket.id].GetData());
         delete players[socket.id];
-        io.emit('update', JSON.stringify(players));
     });
 });
 
