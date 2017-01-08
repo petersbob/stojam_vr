@@ -3,15 +3,14 @@ var element, stats, container, controls, keyboard;
 var move_clock, update_clock, previous_time;
 var cube;
 var guiControls, gui;
+
 var sendAndReceive = true;
 
-var localClient;
-
-init();
-
-var myself;
+var myself, plane;
 
 var players = {};
+
+init();
 
 function newCube(cubeMapCube) {
 
@@ -84,15 +83,29 @@ function init() {
         map: plane_texture,
         side: THREE.DoubleSide
     });
-    var plane_geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
 
-    var plane = new THREE.Mesh(plane_geometry, plane_material);
+    var loader = new THREE.JSONLoader();
 
-    plane.rotation.x = Math.PI / 2;
+    loader.load(
+	'/public/assets/ground.js',
+	function(geometry, materials) {
+	    var material = plane_material;
+	    plane = new THREE.Mesh( geometry, material);
+	    plane.scale.set(10, 10, 10);
+	    scene.add( plane );
+	}
+    );
+    
 
-    plane.position.set(0, -.05, 0);
+//    var plane_geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
 
-    scene.add(plane);
+//    var plane = new THREE.Mesh(plane_geometry, plane_material);
+
+//    plane.rotation.x = Math.PI / 2;
+
+//    plane.position.set(0, -.05, 0);
+
+//    scene.add(plane);
 
     //============A simple box that follows camera===============//
     /* var cube_geometry = new THREE.BoxGeometry(2, 2, 2);
@@ -132,7 +145,7 @@ function animate() {
     if (keyboard.pressed("D"))
         cube.rotateOnAxis(new THREE.Vector3(0, 1, 0), -rotateAngle);
 
-    var relativeCameraOffset = new THREE.Vector3(0, 7, 10);
+    var relativeCameraOffset = new THREE.Vector3(0, 14, 20);
 
     var cameraOffset = relativeCameraOffset.applyMatrix4(cube.matrixWorld);
 
@@ -181,15 +194,19 @@ socket.on('update', function(server_players) {
     server_players = JSON.parse(server_players);
 
     for (var server_player in server_players) {
-        if (server_player in players) {
-            players[server_player].UpdatePos(server_players[server_player]);
-        } else {
-            var new_player = new Player(server_players[server_player].id);
-            new_player.CreateMesh(0, 1,0);
-            new_player.UpdatePos(server_players[server_player]);
-            players[server_players[server_player].id] = new_player;
-        }
+	if (server_player != myself) {
+            if (server_player in players) {
+		players[server_player].UpdatePos(server_players[server_player]);
+            } else {
+		var new_player = new Player(server_players[server_player].id);
+		new_player.CreateMesh(0, 1,0);
+		new_player.UpdatePos(server_players[server_player]);
+		players[server_players[server_player].id] = new_player;
+            }
+	}
     }
+
+    players[myself].CheckCollision(plane);
 
 });
 

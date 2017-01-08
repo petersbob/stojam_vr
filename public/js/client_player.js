@@ -1,6 +1,12 @@
 function Player(id) {
     this.mesh;
     this.id = id;
+    this.rays = [
+	new THREE.Vector3(0, 0, 1),
+	new THREE.Vector3(0, 0, 1),
+	new THREE.Vector3(0, -1, 0)
+    ];
+    this.raycaster = new THREE.Raycaster();
 };
 
 Player.prototype.CreateMesh = function(x, y, z) {
@@ -42,6 +48,24 @@ Player.prototype.UpdatePos = function(data) {
     this.mesh.rotation.x = data.rx;
     this.mesh.rotation.y = data.ry;
     this.mesh.rotation.z = data.rz;
+};
+
+Player.prototype.CheckCollision = function(obstacle) {
+
+    for (var vertexIndex = 0; vertexIndex < this.mesh.geometry.vertices.length; vertexIndex++){		
+	var localVertex = this.mesh.geometry.vertices[vertexIndex].clone();
+	var globalVertex = localVertex.applyMatrix4( this.mesh.matrix );
+
+	for (var ray = 0; ray < this.rays.length; ray++) {
+	    
+	    this.raycaster.set(globalVertex, this.rays[ray]);
+	    var collisionResults = this.raycaster.intersectObjects( [obstacle] );
+	    if ( collisionResults.length > 0 && collisionResults[0].distance < 10 ) {
+		this.mesh.position.y = collisionResults[0].point.y + 1;
+	    }
+	}
+    }
+
 };
 
 Player.prototype.Remove = function() {
