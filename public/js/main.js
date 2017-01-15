@@ -10,27 +10,14 @@ var myself, plane;
 
 var players = {};
 
+var box;
+var boxes = [];
+
 init();
 
-function newCube(cubeMapCube) {
-
-    var cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
-    var cubeMaterial = new THREE.MeshNormalMaterial();
-
-    var newCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    newCube.position.x = cubeMapCube.x;
-    newCube.position.y = cubeMapCube.y;
-    newCube.position.z = camera.position.z;
-
-    scene.add(newCube);
-
-    players[cubeMapCube.id] = newCube;
-
-}
-
 function init() {
+    
     renderer = new THREE.WebGLRenderer();
-    renderer;
     renderer.setClearColor(0xffffff, 1);
     element = renderer.domElement;
     container = document.getElementById('example');
@@ -67,23 +54,33 @@ function init() {
         controls.update();
 
         window.addEventListener('click', fullscreen, false);
-
     }
+
+    window.addEventListener( 'resize', onWindowResize, false );
+
+    //============ cube map ===============//
+
+    scene.background = new THREE.CubeTextureLoader()
+        .setPath('public/assets/ame_majesty/')
+        .load( [
+	    'majesty_lf.png', 'majesty_rt.png',
+	    'majesty_up.png', 'majesty_dn.png',
+	    'majesty_ft.png', 'majesty_bk.png'
+	] );
 
     //============A plane===================//
 
     var texture_loader = new THREE.TextureLoader();
     var plane_texture = texture_loader.load('/public/assets/dirt.png');
 
-    //var plane_texture = new THREE.ImageUtils.loadTexture( 'assets/dirt.png');
     plane_texture.wrapS = plane_texture.wrapT = THREE.RepeatWrapping;
-    plane_texture.repeat.set(10, 10);
+    plane_texture.repeat.set(30, 30);
 
     var plane_material = new THREE.MeshBasicMaterial({
-        map: plane_texture,
-        side: THREE.DoubleSide
-    });
-
+	    map: plane_texture,
+	    side: THREE.DoubleSide
+	});
+					       
     var loader = new THREE.JSONLoader();
 
     loader.load(
@@ -95,34 +92,17 @@ function init() {
 	    scene.add( plane );
 	}
     );
-    
-
-//    var plane_geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
-
-//    var plane = new THREE.Mesh(plane_geometry, plane_material);
-
-//    plane.rotation.x = Math.PI / 2;
-
-//    plane.position.set(0, -.05, 0);
-
-//    scene.add(plane);
-
-    //============A simple box that follows camera===============//
-    /* var cube_geometry = new THREE.BoxGeometry(2, 2, 2);
-     * var cube_material = new THREE.MeshNormalMaterial();
-
-     * cube = new THREE.Mesh(cube_geometry, cube_material);
-     * cube.position.x = camera.position.z
-     * cube.position.z = myself.z;
-     *
-     * scene.add(cube);*/
-    //======================================//
-
 }
 
-var check = 0;
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
 
 function animate() {
+
     requestAnimationFrame(animate);
 
     cube = players[myself].mesh;
@@ -145,7 +125,7 @@ function animate() {
     if (keyboard.pressed("D"))
         cube.rotateOnAxis(new THREE.Vector3(0, 1, 0), -rotateAngle);
 
-    var relativeCameraOffset = new THREE.Vector3(0, 14, 20);
+    var relativeCameraOffset = new THREE.Vector3(0,10, 20);
 
     var cameraOffset = relativeCameraOffset.applyMatrix4(cube.matrixWorld);
 
@@ -167,7 +147,6 @@ function animate() {
 }
 
 function render() {
-
     renderer.render(scene, camera);
 }
 

@@ -2,9 +2,12 @@ function Player(id) {
     this.mesh;
     this.id = id;
     this.rays = [
-	new THREE.Vector3(0, 0, 1),
-	new THREE.Vector3(0, 0, 1),
-	new THREE.Vector3(0, -1, 0)
+	//new THREE.Vector3(0, 0, 1),
+	//new THREE.Vector3(0, 0, -1),
+	new THREE.Vector3(0, -1, 0),
+	new THREE.Vector3(0, 1, 0)
+	//new THREE.Vector3(1, 0, 0),
+	//new THREE.Vector3(-1, 0, 0)
     ];
     this.raycaster = new THREE.Raycaster();
 };
@@ -52,19 +55,19 @@ Player.prototype.UpdatePos = function(data) {
 
 Player.prototype.CheckCollision = function(obstacle) {
 
-    for (var vertexIndex = 0; vertexIndex < this.mesh.geometry.vertices.length; vertexIndex++){		
-	var localVertex = this.mesh.geometry.vertices[vertexIndex].clone();
-	var globalVertex = localVertex.applyMatrix4( this.mesh.matrix );
+    //for (var vertexIndex = 0; vertexIndex < this.mesh.geometry.vertices.length; vertexIndex++){		
+    	//var localVertex = this.mesh.geometry.vertices[vertexIndex].clone();
+    	//var globalVertex = localVertex.applyMatrix4( this.mesh.matrix );
 
-	for (var ray = 0; ray < this.rays.length; ray++) {
+    	for (var ray = 0; ray < this.rays.length; ray++) {
 	    
-	    this.raycaster.set(globalVertex, this.rays[ray]);
-	    var collisionResults = this.raycaster.intersectObjects( [obstacle] );
-	    if ( collisionResults.length > 0 && collisionResults[0].distance < 10 ) {
-		this.mesh.position.y = collisionResults[0].point.y + 1;
-	    }
-	}
-    }
+    	    this.raycaster.set(this.mesh.position, this.rays[ray]);
+    	    var collisionResults = this.raycaster.intersectObjects( [obstacle] );
+    	    if ( collisionResults.length > 0 && collisionResults[0].distance < 30 ) {
+    		this.mesh.position.y = collisionResults[0].point.y + 1;
+    	    }
+    	}
+    //}
 
 };
 
