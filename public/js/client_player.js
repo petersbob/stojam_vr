@@ -17,6 +17,7 @@ Player.prototype.CreateMesh = function(x, y, z) {
     var cubeMaterial = new THREE.MeshNormalMaterial();
 
     this.mesh  = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
     this.mesh.position.x = x;
     this.mesh.position.y = y;
     this.mesh.position.z = z;
@@ -26,16 +27,16 @@ Player.prototype.CreateMesh = function(x, y, z) {
 
 Player.prototype.GetData = function() {
 
-    var data = {
-	px: this.mesh.position.x,
-	py: this.mesh.position.y,
-	pz: this.mesh.position.z,
+   var data = {
+    	px: this.mesh.position.x,
+    	py: this.mesh.position.y,
+    	pz: this.mesh.position.z,
 
-	rx: this.mesh.rotation.x,
-	ry: this.mesh.rotation.y,
-	rz: this.mesh.rotation.z,
+    	rx: this.mesh.rotation.x,
+    	ry: this.mesh.rotation.y,
+    	rz: this.mesh.rotation.z,
 
-	id: this.id
+    	id: this.id
     };
 
     return data;

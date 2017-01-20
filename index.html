@@ -2,22 +2,13 @@
 <html lang="en">
   <head>
     <title>Stojam VR</title>
-    <style>
-      body {
-      margin: 0px;
-      overflow: hidden;
-      }
-      #example {
-      position:absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/public/style/main.css">
   </head>
   <body>
-    <div id ="example"></div>
+
+    <div id="menu"><button onclick="connect()">Click me</button></div>
+    <div id ="scene_body"></div>
+    
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/js/three.min.js"></script>
     <script src="/public/js/stats.min.js"></script>
@@ -27,6 +18,7 @@
     <script src="/public/js/THREEx.KeyboardState.js"></script>
     <script src="/public/js/client_player.js"></script>
     <script src="/public/js/main.js"></script>
+
 
   </body>
 </html>

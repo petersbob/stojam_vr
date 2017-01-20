@@ -13,14 +13,21 @@ var players = {};
 var box;
 var boxes = [];
 
+var socket;
+
 init();
+
+function connect() {
+    document.getElementById('menu').style.display = 'none';
+    network();
+};
 
 function init() {
     
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer( { antialias: true });
     renderer.setClearColor(0xffffff, 1);
     element = renderer.domElement;
-    container = document.getElementById('example');
+    container = document.getElementById('scene_body');
     container.appendChild(element);
 
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -61,11 +68,11 @@ function init() {
     //============ cube map ===============//
 
     scene.background = new THREE.CubeTextureLoader()
-        .setPath('public/assets/ame_majesty/')
+        .setPath('/public/assets/hip_miramar/')
         .load( [
-	    'majesty_lf.png', 'majesty_rt.png',
-	    'majesty_up.png', 'majesty_dn.png',
-	    'majesty_ft.png', 'majesty_bk.png'
+	    'miramar_lf.png', 'miramar_rt.png',
+	    'miramar_up.png', 'miramar_dn.png',
+	    'miramar_ft.png', 'miramar_bk.png'
 	] );
 
     //============A plane===================//
@@ -92,6 +99,9 @@ function init() {
 	    scene.add( plane );
 	}
     );
+
+    render();
+    
 }
 
 function onWindowResize() {
@@ -105,7 +115,7 @@ function animate() {
 
     requestAnimationFrame(animate);
 
-    cube = players[myself].mesh;
+    var cube = players[myself].mesh;
 
     var delta = move_clock.getDelta(); // seconds since last getDelta was called
     var moveDistance = 30 * delta; // pixels per second
@@ -150,51 +160,54 @@ function render() {
     renderer.render(scene, camera);
 }
 
-var socket = io();
+function network() {
+    socket = io();
 
-socket.on('socket_id', function(id) {
-    myself = id;
-    var local_player = new Player(id);
-    var x = Math.random() * 45;
-    var y = 1;
-    var z = Math.random() * 45;
-    local_player.CreateMesh(x, y, z);
-    players[myself] = local_player;
+    socket.on('socket_id', function(id) {
+	myself = id;
+	var local_player = new Player(id);
+	var x = Math.random() * 45;
+	var y = 1;
+	var z = Math.random() * 45;
+	local_player.CreateMesh(x, y, z);
+	players[myself] = local_player;
 
-    socket.emit('update', local_player.GetData());
-    move_clock = new THREE.Clock();
-    update_clock = new THREE.Clock();
-    previous_time = update_clock.startTime;
-    animate();
+	socket.emit('update', local_player.GetData());
+	move_clock = new THREE.Clock();
+	update_clock = new THREE.Clock();
+	previous_time = update_clock.startTime;
+	animate();
 
-});
+    });
 
-socket.on('update', function(server_players) {
-    server_players = JSON.parse(server_players);
+    socket.on('update', function(server_players) {
+	server_players = JSON.parse(server_players);
 
-    for (var server_player in server_players) {
-	if (server_player != myself) {
-            if (server_player in players) {
-		players[server_player].UpdatePos(server_players[server_player]);
-            } else {
-		var new_player = new Player(server_players[server_player].id);
-		new_player.CreateMesh(0, 1,0);
-		new_player.UpdatePos(server_players[server_player]);
-		players[server_players[server_player].id] = new_player;
-            }
+	for (var server_player in server_players) {
+	    if (server_player != myself) {
+		if (server_player in players) {
+		    players[server_player].UpdatePos(server_players[server_player]);
+		} else {
+		    var new_player = new Player(server_players[server_player].id);
+		    new_player.CreateMesh(0, 1,0);
+		    new_player.UpdatePos(server_players[server_player]);
+		    players[server_players[server_player].id] = new_player;
+		}
+	    }
 	}
-    }
 
-    players[myself].CheckCollision(plane);
+	players[myself].CheckCollision(plane);
 
-});
+    });
 
-socket.on('remove_player', function(msg) {
-    console.log("trying to remove a player");
-    players[msg.id].Remove();
-    delete players[id];
+    socket.on('remove_player', function(msg) {
+	console.log("trying to remove a player");
+	players[msg].Remove();
+	delete players[msg];
+    });
 
-});
+    animate();
+};
 
 function checkMobile() {
     var check = false;

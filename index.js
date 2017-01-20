@@ -32,7 +32,7 @@ io.on('connection', function(socket) {
 
     socket.on('disconnect', function() {
         console.log('a user disconnected with id: ' + socket.id);
-        io.emit('remove_player', players[socket.id].GetData());
+        io.emit('remove_player', players[socket.id].id);
         delete players[socket.id];
     });
 });
